@@ -1,0 +1,16 @@
+name: halite
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - flask
+  - gym
+  - jsonschema
+  - numpy
+  - requests
+  - scipy
+  - pip
+  - pip:
+    - kaggle-environments
+    - stickytape
+prefix: C:\Users\roee9\Miniconda3\envs\halite
