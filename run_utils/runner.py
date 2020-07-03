@@ -4,7 +4,7 @@ import time
 from kaggle_environments import evaluate, make
 
 
-class Runner():
+class Runner:
     def __init__(self, agents, episode_steps=400):
         self.agents = agents
         self.episode_steps = episode_steps

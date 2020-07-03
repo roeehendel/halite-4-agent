@@ -1,6 +1,6 @@
 from run_utils.runner import Runner
 
-runner = Runner(["builds/submission.py", "random", "random", "random"], episode_steps=120)
+runner = Runner(["builds/submission.py", "random", "random", "random"], episode_steps=40)
 
 result = runner.run()
 

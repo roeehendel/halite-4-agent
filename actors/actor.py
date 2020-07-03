@@ -4,9 +4,9 @@ class Actor:
         :param entity: the entity this actor represents
         """
         self._entity = entity
-        self._modes, self.default_mode = self.define_modes()
-        self._mode = self.default_mode
-        self.flags = []
+        self._mode = self.initial_mode()
+        self.board = None
+        self._requested_resources = []
 
     @property
     def id(self):
@@ -28,11 +28,57 @@ class Actor:
     def mode(self, mode):
         self._mode = mode
 
-    def raise_flag(self, flag):
-        self.flags.append(flag)
+    @property
+    def position(self):
+        return self._entity.position
 
-    def define_modes(self):
+    @property
+    def resources(self):
+        return [self.get_my_resource(type(rr)) for rr in self._requested_resources]
+
+    def initial_mode(self):
         raise NotImplementedError
 
-    def choose_action(self, board):
-        self.entity.next_action = self._modes[self.mode](board)
+    def choose_mode(self):
+        raise NotImplementedError
+
+    def reset(self):
+        self._requested_resources = []
+
+    def get_my_resource(self, resource_type):
+        resources_of_type = list(filter(lambda r: type(r) == resource_type, self._requested_resources))
+        my_resources_of_type = list(filter(lambda r: r.allocated_to == self, resources_of_type))
+        return my_resources_of_type[0] if len(my_resources_of_type) > 0 else None
+
+    def request_resource(self, available_resources, resource_type, **kwargs):
+        resources_of_type = list(filter(lambda r: type(r) == resource_type, available_resources))
+        if len(resources_of_type) > 0:
+            resource_to_request = max(resources_of_type, key=lambda r: r.score(self, **kwargs))
+            resource_to_request.request(self)
+            return resource_to_request
+        else:
+            # Handle resource unavailable
+            pass
+
+    def get_resource(self, available_resources, resource_type, kwargs):
+        my_resource = self.get_my_resource(resource_type)
+        if my_resource is not None:
+            return my_resource
+        else:
+            requested_resource = self.request_resource(available_resources, resource_type, **kwargs)
+            if requested_resource is not None:
+                self._requested_resources.append(requested_resource)
+            return None
+
+    def _get_resource_requests(self, available_resources):
+        raise NotImplementedError
+
+    def request_resources(self, available_resources):
+        resource_requests = self._get_resource_requests(available_resources)
+        for resource_request in resource_requests:
+            if self.get_resource(available_resources, resource_request[0], kwargs=resource_request[1]) is None:
+                break
+
+    def use_resources(self):
+        for r in self.resources:
+            r.use(self)

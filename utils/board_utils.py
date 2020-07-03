@@ -3,11 +3,6 @@ from kaggle_environments.envs.halite.helpers import ShipAction, Point, Ship, Shi
 
 # TODO: make this less ugly
 SHIP_MOVEMENT_ACTIONS = list(ShipAction)[:4]
-ENTITY_NAME_TO_TYPE = {
-    'ship': Ship,
-    'shipyard': Shipyard
-}
-ENTITY_TYPE_TO_NAME = {v: k for k, v in ENTITY_NAME_TO_TYPE.items()}
 
 
 def get_xy_distances(point1, point2, config):
@@ -101,43 +96,6 @@ def cell_within_manhattan_distance(board, cell, distance, config):
     return cells_within_distance(board, cell, distance, manhattan_distance, config)
 
 
-class CellList(list):
-    def __init__(self, cells):
-        super().__init__(cells)
-
-    @property
-    def entity_list(self):
-        return EntityList(
-            filter(lambda x: x is not None, [cell.ship for cell in self] + [cell.shipyard for cell in self])
-        )
-
-
-class EntityList(list):
-    def __init__(self, entities):
-        super().__init__(entities)
-
-    def nearest_entity_to(self, point, config, distance_fn=manhattan_distance):
-        return min(self, key=lambda entity: distance_fn(entity.position, point, config))
-
-    @property
-    def positions(self):
-        return [e.position for e in self]
-
-    def filter(self, players=None, entity_types=('ship', 'shipyard'), friendly_only=False, enemy_only=False,
-               excluded_ids=()):
-        def predicate(e):
-            return (players is None or e.player in players) and \
-                   (ENTITY_TYPE_TO_NAME[type(e)] in entity_types) and \
-                   (not friendly_only or e.player.is_current_player) and \
-                   (not enemy_only or not e.player.is_current_player) and \
-                   (e.id not in excluded_ids)
-
-        return EntityList(list(filter(lambda e: predicate(e), self)))
-
-    def amount(self, **kwargs):
-        return len(self.filter(**kwargs))
-
-
 def get_neighbors(point, config):
     return [(movement, (point + movement.to_point()) % config.size) for movement in SHIP_MOVEMENT_ACTIONS]
 
@@ -146,31 +104,11 @@ def future_halite_in_cell(cell, steps, config):
     return min(cell.halite * (1 + config.regen_rate) ** steps, config.max_cell_halite)
 
 
-def cell_reward(current_position, cell, config):
-    distance_to_cell = manhattan_distance(current_position, cell.position, config)
-    cell_halite = future_halite_in_cell(cell, distance_to_cell, config)
-
-    collected_turns = 1
-    collected_halite = config.collect_rate * cell_halite
-    max_reward = collected_halite / (distance_to_cell + collected_turns)
-    remaining_cell_halite = cell_halite - collected_halite
-
-    min_cell_halite = 30
-    # TODO: verify no bugs
-    while remaining_cell_halite > min_cell_halite:
-        collected_turns += 1
-        collected_halite += config.collect_rate * remaining_cell_halite
-        max_reward = max(max_reward, collected_halite / (distance_to_cell + collected_turns))
-        remaining_cell_halite = cell_halite - collected_halite
-    return max_reward
-
-
-def best_cell_heuristic(current_position, cells, config):
-    """
-    Use heuristic to find the best cell to go to from the given list of cells
-    :param current_position:
-    :param cells: list of cells to check
-    :param config: the env configuration
-    :return: return best point by heuristic
-    """
-    return max(cells, key=lambda cell: cell_reward(current_position, cell, config))
+def point_to_ship_action(point):
+    return {
+        Point(0, 0): None,
+        Point(0, 1): ShipAction.NORTH,
+        Point(1, 0): ShipAction.EAST,
+        Point(0, -1): ShipAction.SOUTH,
+        Point(-1, 0): ShipAction.WEST,
+    }[point]

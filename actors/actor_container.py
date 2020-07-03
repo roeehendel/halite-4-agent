@@ -1,19 +1,23 @@
 from utils.entity_utils import get_entity_by_id
 
 
-class ActorContainer():
+class ActorContainer:
+    """
+    This class is responsible for maintaining and updating a list of actors
+    """
+
     def __init__(self):
         self.actors = []
         self.board = None
 
-    def get_entity_list(self):
+    def _get_entity_list(self):
         raise NotImplementedError
 
-    def create_actor(self, entity):
+    def _create_actor(self, entity):
         raise NotImplementedError
 
-    def update_actors(self):
-        entity_list = self.get_entity_list()
+    def _update_actors(self):
+        entity_list = self._get_entity_list()
 
         last_turn_ids = set(actor.id for actor in self.actors)
         current_turn_ids = set(entity.id for entity in entity_list)
@@ -22,7 +26,8 @@ class ActorContainer():
         remained_ids = current_turn_ids.intersection(last_turn_ids)
         added_ids = current_turn_ids - last_turn_ids
 
-        self.actors = [actor for actor in self.actors if actor.id not in removed_ids]  # Remove removed entities
+        # Remove removed entities
+        self.actors = [actor for actor in self.actors if actor.id not in removed_ids]
 
         # Update remained entities
         for entity_id in remained_ids:
@@ -33,16 +38,12 @@ class ActorContainer():
         # Add added entities
         for entity_id in added_ids:
             entity = get_entity_by_id(entity_list, entity_id)
-            self.actors.append(self.create_actor(entity))
+            self.actors.append(self._create_actor(entity))
 
-    def update(self, board, government_flags):
-        self.board = board
-        self.update_actors()
-
-        flags = []
-
+        # Update board for all actors
         for actor in self.actors:
-            actor.choose_action(board)
-            flags += actor.flags
+            actor.board = self.board
 
-        return flags
+    def update(self, board):
+        self.board = board
+        self._update_actors()

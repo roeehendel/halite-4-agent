@@ -1,17 +1,15 @@
 from kaggle_environments.envs.halite.helpers import Board
 
-from agents.distributed_agent import DistributedAgent
+from agents.agent import Agent
 
 agent = None
 
 
 def run_step(observation, config):
-    # print('hello')
-
     global agent
 
     if agent is None:
-        agent = DistributedAgent()
+        agent = Agent()
 
     board = Board(observation, config)
 
