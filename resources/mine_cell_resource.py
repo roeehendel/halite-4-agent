@@ -1,5 +1,5 @@
 from resources.resource import Resource
-from utils.board_utils import manhattan_distance, future_halite_in_cell
+from utils.board_utils import manhattan_distance, future_halite_in_cell, get_movements_and_neighbors, get_neighbors
 
 
 class MineCellResource(Resource):
@@ -35,5 +35,5 @@ class MineCellResource(Resource):
         return nearest_actor
 
     @classmethod
-    def _get_resource_instances(cls, board):
+    def _resource_instances(cls, board):
         return [MineCellResource(board, cell) for cell in board.cells.values()]

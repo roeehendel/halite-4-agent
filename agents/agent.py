@@ -17,15 +17,17 @@ class Agent(BaseAgent):
         self.shipyard_actor_container = ShipyardActorContainer()
 
         # Resources
-        self.resources = [SpawnResource, ConvertResource, MineCellResource, DepositResource, OccupyCellResource]
+        self.resources = [SpawnResource, ConvertResource, DepositResource, MineCellResource, OccupyCellResource]
 
     def get_actions(self, board):
+        print('TURN:', board.step, end=None)
+
         # Update actors in containers (add new, update existing and remove dead)
         self.ship_actor_container.update(board)
         self.shipyard_actor_container.update(board)
         actors = self.ship_actor_container.actors + self.shipyard_actor_container.actors
 
-        # Remove previous resources
+        # Remove previous resources and choose mode
         for actor in actors:
             actor.reset()
             actor.choose_mode()

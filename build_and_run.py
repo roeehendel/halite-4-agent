@@ -17,7 +17,8 @@ if __name__ == '__main__':
     with open(dest_file, 'w') as f:
         f.write(result)
 
-    runner = Runner(["builds/submission.py", "random", "random", "random"], episode_steps=40)
+    runner = Runner(["builds/submission.py", "builds/submission.py", "builds/submission.py", "builds/submission.py"],
+                    episode_steps=40)
 
     result = runner.run()
 

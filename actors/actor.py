@@ -52,13 +52,16 @@ class Actor:
 
     def request_resource(self, available_resources, resource_type, **kwargs):
         resources_of_type = list(filter(lambda r: type(r) == resource_type, available_resources))
+        scores = {r: r.score(self, **kwargs) for r in resources_of_type}
+        resources_of_type = list(filter(lambda r: scores[r] is not None, resources_of_type))
+
         if len(resources_of_type) > 0:
-            resource_to_request = max(resources_of_type, key=lambda r: r.score(self, **kwargs))
+            # resource_to_request = max(resources_of_type, key=lambda r: r.score(self, **kwargs))
+            resource_to_request = max(resources_of_type, key=lambda r: scores[r])
             resource_to_request.request(self)
             return resource_to_request
         else:
-            # Handle resource unavailable
-            pass
+            return None
 
     def get_resource(self, available_resources, resource_type, kwargs):
         my_resource = self.get_my_resource(resource_type)
@@ -68,7 +71,9 @@ class Actor:
             requested_resource = self.request_resource(available_resources, resource_type, **kwargs)
             if requested_resource is not None:
                 self._requested_resources.append(requested_resource)
-            return None
+                return 1
+            else:
+                return 0
 
     def _get_resource_requests(self, available_resources):
         raise NotImplementedError
@@ -76,9 +81,11 @@ class Actor:
     def request_resources(self, available_resources):
         resource_requests = self._get_resource_requests(available_resources)
         for resource_request in resource_requests:
-            if self.get_resource(available_resources, resource_request[0], kwargs=resource_request[1]) is None:
+            if self.get_resource(available_resources, resource_request[0], kwargs=resource_request[1]) == 1:
                 break
 
     def use_resources(self):
         for r in self.resources:
-            r.use(self)
+            if r is not None:  # TODO change it, it's probably bad
+                if not r.use(self):
+                    break

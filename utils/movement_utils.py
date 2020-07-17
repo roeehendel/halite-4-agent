@@ -1,7 +1,7 @@
 import numpy as np
 from kaggle_environments.envs.halite.helpers import ShipAction
 
-from utils.board_utils import euclidean_distance, get_neighbors, manhattan_distance, SHIP_MOVEMENT_ACTIONS
+from utils.board_utils import euclidean_distance, get_movements_and_neighbors, manhattan_distance, SHIP_MOVEMENT_ACTIONS
 
 
 # TODO: move by distance_fn
@@ -18,7 +18,7 @@ def radial_move(current_point, destination_position, config):
     if current_point == destination_position:
         return None
 
-    neighbors = get_neighbors(current_point, config)
+    neighbors = get_movements_and_neighbors(current_point, config)
     return min([(movement, manhattan_distance(neighbor, destination_position, config))
                 for movement, neighbor in neighbors], key=lambda x: x[1])[0]
 
@@ -32,7 +32,7 @@ def keep_distance_move(current_point, entities_positions, config):
     :return:
     """
 
-    neighbors = get_neighbors(current_point, config)
+    neighbors = get_movements_and_neighbors(current_point, config)
 
     distances = [config.size ** 2] * 4
 

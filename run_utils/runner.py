@@ -10,7 +10,7 @@ class Runner:
         self.episode_steps = episode_steps
 
     def run(self):
-        env = make("halite", configuration={"episodeSteps": self.episode_steps}, debug=True)
+        env = make("halite", configuration={"episodeSteps": self.episode_steps}, debug=True)  # , "agentExec": "PROCESS"
         print(env.configuration)
 
         # start_time = time.time()

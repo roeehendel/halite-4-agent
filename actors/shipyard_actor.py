@@ -3,6 +3,7 @@ from enum import Enum, auto
 from kaggle_environments.envs.halite.helpers import ShipyardAction
 
 from actors.actor import Actor
+from resources.occupy_cell_resource import OccupyCellResource
 from resources.spawn_resource import SpawnResource
 from utils.entity_utils import EntityType, EntityList
 
@@ -22,7 +23,9 @@ class ShipyardActor(Actor):
         return ShipyardActor.Modes.REST
 
     def choose_mode(self):
-        if EntityList.all_entities(self.board).count(friendly_only=True, entity_types=[EntityType.SHIP]) < 1:
+        if self.board.step < 370 and \
+                EntityList.all_entities(self.board).count(friendly_only=True, entity_types=[EntityType.SHIP]) \
+                < min(self.board.step // 10 + 10, 30 - self.board.step // 20):
             self.mode = ShipyardActor.Modes.SPAWN
         else:
             self.mode = ShipyardActor.Modes.REST
@@ -31,8 +34,14 @@ class ShipyardActor(Actor):
         resource_requests = []
 
         if self.mode == ShipyardActor.Modes.REST:
-            resource_requests = []
+            pass
         elif self.mode == ShipyardActor.Modes.SPAWN:
-            resource_requests = [[SpawnResource, {}]]
+            resource_requests = [
+                [SpawnResource, {}],
+                [
+                    OccupyCellResource,
+                    {'cell_position': lambda: self.position}
+                ]
+            ]
 
         return resource_requests

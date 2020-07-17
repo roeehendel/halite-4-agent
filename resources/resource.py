@@ -21,22 +21,22 @@ class Resource:
         self.requested_by.append(actor)
 
     def use(self, actor):
-        pass
+        return True
 
     def allocate_to_single_request(self):
         self.allocated_to = self.requested_by[0]
         self.requested_by = []
 
     @classmethod
-    def _get_resource_instances(cls, board):
+    def _resource_instances(cls, board):
         raise NotImplementedError
 
     @classmethod
     def allocate(cls, board, actors):
-        resource_instances = cls._get_resource_instances(board)
+        resource_instances = cls._resource_instances(board)
 
         # This loops ends
-        while True:
+        for i in range(10):
             # Get unsatisfied resource requests
             for actor in actors:
                 actor.request_resources(resource_instances)
@@ -44,7 +44,12 @@ class Resource:
             collisions_occurred = False
             for resource in resource_instances:
                 if resource.has_collision():
+                    # if hasattr(resource, 'destination_position'):
+                    #     print(resource, resource.requested_by)
+                    collisions_occurred = True
                     resource.resolve_collision()
+                    # if hasattr(resource, 'destination_position'):
+                    #     print(resource, resource.cell.position, resource.allocated_to)
 
             if not collisions_occurred:
                 # If not more collisions, stop
