@@ -4,6 +4,8 @@ from kaggle_environments.envs.halite.helpers import Ship, Shipyard
 
 from utils.board_utils import manhattan_distance
 
+from utils.global_vars import GLOBALS
+
 
 class EntityType(Enum):
     SHIP = auto()
@@ -36,11 +38,11 @@ class EntityList(list):
         super().__init__(entities)
 
     @staticmethod
-    def all_entities(board):
-        return CellList(board.cells.values()).entity_list
+    def all_entities():
+        return CellList(GLOBALS['board'].cells.values()).entity_list
 
-    def nearest_entity_to(self, point, config, distance_fn=manhattan_distance):
-        return min(self, key=lambda entity: distance_fn(entity.position, point, config))
+    def nearest_entity_to(self, point, distance_fn=manhattan_distance):
+        return min(self, key=lambda entity: distance_fn(entity.position, point))
 
     @property
     def positions(self):
