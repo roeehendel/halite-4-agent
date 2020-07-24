@@ -1,6 +1,3 @@
-import numpy as np
-from kaggle_environments.envs.halite.helpers import ShipAction
-
 from utils.board_utils import euclidean_distance, get_movements_and_neighbors, manhattan_distance, SHIP_MOVEMENT_ACTIONS
 from utils.global_vars import GLOBALS
 

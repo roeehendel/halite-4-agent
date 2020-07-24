@@ -1,5 +1,6 @@
-from kaggle_environments.envs.halite.helpers import *
 from random import choice
+
+from kaggle_environments.envs.halite.helpers import *
 
 from agents.base_agent import BaseAgent
 

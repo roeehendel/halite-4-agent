@@ -1,5 +1,5 @@
 from resources.resource import Resource
 
 
-class AttackPlayerResource(Resource):
+class AttackEnemyResource(Resource):
     pass

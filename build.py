@@ -1,5 +1,3 @@
-import sys
-import os
 import stickytape
 
 if __name__ == '__main__':

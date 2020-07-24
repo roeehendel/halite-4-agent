@@ -11,6 +11,6 @@ dependencies:
   - scipy
   - pip
   - pip:
-    - kaggle-environments
-    - stickytape
+      - kaggle-environments
+      - stickytape
 prefix: C:\Users\roee9\Miniconda3\envs\halite

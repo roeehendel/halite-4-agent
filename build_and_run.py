@@ -1,7 +1,8 @@
-from run_utils.runner import Runner
-import sys
-import os
+import time
+
 import stickytape
+
+from run_utils.runner import Runner
 
 if __name__ == '__main__':
     source_file = 'agents/utils/agent_main.py'
@@ -17,10 +18,15 @@ if __name__ == '__main__':
     with open(dest_file, 'w') as f:
         f.write(result)
 
-    runner = Runner(["builds/submission.py", "builds/submission.py", "builds/submission.py", "builds/submission.py"],
-                    episode_steps=40)
+    start_time = time.time()
+
+    # runner = Runner(["builds/submission.py", "builds/submission.py", "builds/submission.py", "builds/submission.py"],
+    runner = Runner(["builds/submission.py", "builds/new_1_0.py", 'random', 'random'],
+                    episode_steps=200)
 
     result = runner.run()
+
+    print('Finished in: {} seconds'.format(time.time() - start_time))
 
     with open('replays/test_run.html', 'w') as f:
         f.write(result)

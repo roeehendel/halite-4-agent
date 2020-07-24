@@ -2,7 +2,7 @@ import math
 from functools import partial
 
 import numpy as np
-from kaggle_environments.envs.halite.helpers import ShipAction, Point, Ship, Shipyard
+from kaggle_environments.envs.halite.helpers import ShipAction, Point
 
 from utils.global_vars import GLOBALS
 

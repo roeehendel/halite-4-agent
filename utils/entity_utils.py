@@ -1,72 +1,112 @@
-from enum import Enum, auto
+from abc import abstractmethod, ABC
 
-from kaggle_environments.envs.halite.helpers import Ship, Shipyard
-
-from utils.board_utils import manhattan_distance
-
+from actors.actor import EntityType, Actor
 from utils.global_vars import GLOBALS
-
-
-class EntityType(Enum):
-    SHIP = auto()
-    SHIPYARD = auto()
-
-    def to_class_type(self):
-        return (
-            Ship if self == EntityType.SHIP else
-            Shipyard
-        )
-
-    @staticmethod
-    def from_class_type(class_type):
-        return (
-            EntityType.SHIP if class_type == Ship else
-            EntityType.SHIPYARD
-        )
-
-    @staticmethod
-    def from_entity(entity):
-        return EntityType.from_class_type(type(entity))
 
 
 def get_entity_by_id(entity_list, entity_id):
     return next(entity for entity in entity_list if entity.id == entity_id)
 
 
-class EntityList(list):
-    def __init__(self, entities):
-        super().__init__(entities)
+# Entity Filters
 
-    @staticmethod
-    def all_entities():
-        return CellList(GLOBALS['board'].cells.values()).entity_list
+class PlayerFilter:
+    def __init__(self, players):
+        self.players = players
 
-    def nearest_entity_to(self, point, distance_fn=manhattan_distance):
-        return min(self, key=lambda entity: distance_fn(entity.position, point))
+    def __call__(self, e):
+        return e.player in self.players
+
+
+class EntityTypeFilter:
+    def __init__(self, entity_types):
+        self.entity_types = entity_types
+
+    def __call__(self, e):
+        return EntityType.from_entity(e) in self.entity_types
+
+
+# List Helpers
+
+class FilterableEntityDataStructure(ABC):
+    @abstractmethod
+    def filter(self, predicate):
+        pass
 
     @property
-    def positions(self):
-        return [e.position for e in self]
+    def ships(self):
+        return self.filter(EntityTypeFilter([EntityType.SHIP]))
 
-    def filter(self, players=None, entity_types=(EntityType.SHIP, EntityType.SHIPYARD),
-               friendly_only=False, enemy_only=False, excluded_ids=()):
-        def predicate(e):
-            # TODO: rewrite this as a loop
-            return (players is None or e.player in players) and \
-                   (EntityType.from_entity(e) in entity_types) and \
-                   (not friendly_only or e.player.is_current_player) and \
-                   (not enemy_only or not e.player.is_current_player) and \
-                   (e.id not in excluded_ids)
+    @property
+    def shipyards(self):
+        return self.filter(EntityTypeFilter([EntityType.SHIPYARD]))
 
-        return EntityList(list(filter(lambda e: predicate(e), self)))
+    @property
+    def friendly(self):
+        return self.filter(lambda entity: entity.player.is_current_player)
 
-    def count(self, **kwargs):
-        return len(self.filter(**kwargs))
+    @property
+    def enemy(self):
+        return self.filter(lambda entity: not entity.player.is_current_player)
 
 
+class EntityList(list, FilterableEntityDataStructure):
+    def __init__(self, entities):
+        super().__init__([entity for entity in entities])
+
+    def filter(self, predicate):
+        return EntityList(filter(predicate, self))
+
+    @classmethod
+    def all(cls):
+        return CellList.all().entity_list
+
+
+class EntityGroupList(list, FilterableEntityDataStructure):
+    def __init__(self, entity_groups):
+        super().__init__(entity_groups)
+
+    def filter(self, predicate):
+        return EntityGroupList([list(filter(predicate, entity_group)) for entity_group in self])
+
+
+class ActorList(list, FilterableEntityDataStructure):
+    _all = None
+
+    def __init__(self, actors):
+        super().__init__([item for item in actors])
+
+    def filter(self, predicate):
+        return ActorList(filter(lambda actor: predicate(actor.entity), self))
+
+    @classmethod
+    def all(cls):
+        if cls._all is None:
+            cls._all = ActorList([Actor(e) for e in EntityList.all()]).friendly
+        return cls._all
+
+    @classmethod
+    def reset(cls):
+        cls._all = None
+
+
+class ActorGroupList(list, FilterableEntityDataStructure):
+    def __init__(self, actor_groups):
+        super().__init__(actor_groups)
+
+    def filter(self, predicate):
+        return ActorGroupList([list(filter(lambda actor: predicate(actor.entity), actor_group))
+                               for actor_group in self])
+
+
+# TODO: consider making filterable
 class CellList(list):
     def __init__(self, cells):
         super().__init__(cells)
+
+    @staticmethod
+    def all():
+        return CellList(GLOBALS['board'].cells.values())
 
     @property
     def entity_list(self):
